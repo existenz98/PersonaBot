@@ -2,9 +2,8 @@ import rclpy
 from rclpy.node import Node
 from interface.srv import AgvCommd
 
-from geometry_msgs.msg import Twist
-from std_srvs.srv import Empty
-
+# for keyboard input
+import curses
 
 # enabled = 1: Enable the AGV,   -1: Disable the AGV,  0: Apply linear and rotation velocity
 
@@ -51,4 +50,44 @@ class NavigationController(Node):
             self.get_logger().info(f'Success enable: {response.successenable}, Success move: {response.successmove}')
         else:
             self.get_logger().error('Failed to move AGV')
+  
+
+def main(stdscr):
+    rclpy.init(args=None)
+    navigation_controller = NavigationController()
+
+    print("Press '1' to enable AGV, 'ESC' to disable AGV.")
+    print("Use 'W', 'A', 'S', 'D' keys to move the AGV.")
+    print("Press 'Q' to stop the AGV.")
+
+    stdscr.nodelay(1)
+    stdscr.timeout(100)
+
+    while True:
+        key = stdscr.getch()
+        if key == ord('1'):
+            navigation_controller.enable_agv()
+        elif key == 27:  # ESC key
+            navigation_controller.disable_agv()
+            break
+        elif key == ord('2'):
+            navigation_controller.move_agv(0.0, 0.0, 0.0)  # Stop movement
+        elif key == ord('w'):
+            navigation_controller.move_agv(0.5, 0.0, 0.0)  # Move forward
+        elif key == ord('s'):
+            navigation_controller.move_agv(-0.5, 0.0, 0.0)  # Move backward
+        elif key == ord('a'):
+            navigation_controller.move_agv(0.0, 0.0, 0.5)  # Rotate left
+        elif key == ord('d'):
+            navigation_controller.move_agv(0.0, 0.0, -0.5)  # Rotate right
+        elif key == ord('q'):
+            navigation_controller.move_agv(0.0, 0.5, 0.0)  # Move left
+        elif key == ord('e'):
+            navigation_controller.move_agv(0.0, -0.5, 0.0)  # Move right
+
+    navigation_controller.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    curses.wrapper(main)
 

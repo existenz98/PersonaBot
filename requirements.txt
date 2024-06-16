@@ -9,3 +9,6 @@ scipy
 # ROS
 # rclpy     # ROS 2 Python client library
 # rospy     # ROS 1 Python client library
+
+# Local tests
+pynput
