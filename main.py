@@ -1,4 +1,5 @@
 from src.demo_main_control.main_control import MainControl
+from 3rdParty.inspire_hand.python.inspire-hand-RH56-demo import *
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 import os
@@ -45,6 +46,8 @@ def handle_command(data):
 
 def robot_controller_hand_command(command):
     # Also let some important command pass-through to robot controllers
+    
+    # Navigation
     if command == "move_forward":
         main_control.nav_controller.move(0.5, 0.0)
     elif command == "move_backward":
@@ -59,9 +62,23 @@ def robot_controller_hand_command(command):
         main_control.nav_controller.move_to_goal('A')
     elif command == "move_to_B":
         main_control.nav_controller.move_to_goal('B')
+        
+    # Arm Movement
     elif command.startswith("generated_action"):
         main_control.arm_controller.handle_command(command)
         
+    # Hand Actions
+    elif command == "auto_grasp_on":
+        auto_grasp_on()
+    elif command == "auto_grasp_off":
+        auto_grasp_off()
+    elif command == "grab":
+        grasp()
+    elif command == "release":
+        loose()
+    elif command == "clear_err"
+        clearErr()
+        set_pos(0, 0, 0, 0, 0, 0)
 
 
 if __name__ == '__main__':

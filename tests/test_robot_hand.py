@@ -24,7 +24,6 @@ force_start_grasp = 240
 force_grasp_limit = 500
 force_loose_limit = 1100
 
-auto_grasp = False
 
 def openSerial(port, baudrate):
     ser = serial.Serial()
@@ -152,29 +151,58 @@ def forceClb():
 def clearErr():
     writeRegister(ser, 1, regdict['clearErr'], 1, [1])
 
-def auto_grasp_on():
-    auto_grasp = True
-    while auto_grasp:
+if __name__ == '__main__':
+    print('open inspire_hand Serial COM4')
+    ser = openSerial('COM4', 115200)  # 改成自己的串口号和波特率，波特率默认115200
+    """
+    while True:
+        print('*************************')
+        print('posSet')
+        read6(ser, 1, 'posSet')
+        print('angleSet')
+        read6(ser, 1, 'angleSet')
+        print('forceSet')
+        read6(ser, 1, 'forceSet')
+        print('posAct')
+        read6(ser, 1, 'posAct')
+        print('angleAct')
+        read6(ser, 1, 'angleAct')
+        print('forceAct')
+        read6(ser, 1, 'forceAct')
+        print('*************************')
+        time.sleep(1)
+    """
+    # stage 1:set force limit
+    set_force(force_grasp_limit, force_grasp_limit, force_grasp_limit, force_grasp_limit, force_grasp_limit,
+              force_grasp_limit)
+    time.sleep(1)
+    # stage 2:wave hand
+    set_pos(0, 0, 0, 0, 0, 500)
+    time.sleep(3)
+    # stage 3:shake hand
+    set_pos(500, 500, 500, 500, 500, 1000)
+    time.sleep(5)
+
+    force_act = []
+    grasp_done = False
+    loose_done = False
+    while True:
         force_act = read_force();
         for i in range(6):
             # stage 4:grasp microphone
             if grasp_done is False:
-                if force_act[i] >= force_start_grasp:
+                if force_act[i] >= 200:
                     grasp()
                     grasp_done = True
             # stage 5:loose microphone
             if grasp_done & loose_done is False:
-                if force_act[i] >= force_loose_limit:
+                if force_act[i] >= force_start_grasp:
                     loose()
                     time.sleep(1)
                     loose_done = True
                     break
-            if loose_done is True:
-                auto_grasp=False
-                break
-        # stage 6
-        set_pos(0, 0, 0, 0, 0, 0)
-
-def auto_grasp_off():
-    auto_grasp = False
+        if loose_done is True:
+            break
+    # stage 6
     set_pos(0, 0, 0, 0, 0, 0)
+
